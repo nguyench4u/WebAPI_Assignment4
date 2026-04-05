@@ -42,6 +42,8 @@ function getJSONObjectForMovieRequirement(req) {
     return json;
 }
 
+// Routes for user signup and signin like Assignment 3 ===========
+
 router.post('/signup', function(req, res) {
     if (!req.body.username || !req.body.password) {
         res.json({success: false, msg: 'Please include both username and password to signup.'})
@@ -86,6 +88,92 @@ router.post('/signin', function (req, res) {
         })
     })
 });
+
+router.route('/movies') // GET, POST, PUT, DELETE APIs for movies with authentication ------------------
+    .get(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const movies = await Movie.find();
+            res.status(200).json(movies);
+        } catch (err) {
+            res.status(500).json({ success: false, message: 'Something went wrong.' });
+        }
+    })
+    .post(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const movie = new Movie(req.body);
+            await movie.save();
+            res.status(200).json({ success: true, message: 'Movie saved.', movie: movie });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    })
+    .put(authJwtController.isAuthenticated, (req, res) => {
+        res.status(405).json({ success: false, message: 'PUT not supported on /movies. Use /movies/:title.' });
+    })
+    .delete(authJwtController.isAuthenticated, (req, res) => {
+        res.status(405).json({ success: false, message: 'DELETE not supported on /movies. Use /movies/:title.' });
+    });
+
+router.route('/movies/:title')
+    .get(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const movie = await Movie.findOne({ title: req.params.title });
+            if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+            res.status(200).json(movie);
+        } catch (err) {
+            res.status(500).json({ success: false, message: 'Something went wrong.' });
+        }
+    })
+    .post(authJwtController.isAuthenticated, (req, res) => {
+        res.status(405).json({ success: false, message: 'POST not supported on /movies/:title. Use /movies.' });
+    })
+    .put(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const movie = await Movie.findOneAndUpdate(
+                { title: req.params.title },
+                req.body,
+                { new: true, runValidators: true }
+            );
+            if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+            res.status(200).json({ success: true, message: 'Movie updated.', movie: movie });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    })
+    .delete(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const movie = await Movie.findOneAndDelete({ title: req.params.title });
+            if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+            res.status(200).json({ success: true, message: 'Movie deleted.' });
+        } catch (err) {
+            res.status(500).json({ success: false, message: 'Something went wrong.' });
+        }
+    });
+
+// ADDED NEW REVIEWS ROUTES WITH AUTH: GET AND POST ========
+router.route('/reviews')
+    .get(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const reviews = await Review.find();
+            res.status(200).json(reviews);
+        } catch (err) {
+            res.status(500).json({ success: false, message: 'Something went wrong.' });
+        }
+    })
+    .post(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const review = new Review({
+                movieId: req.body.movieId,
+                username: req.user.username,
+                review: req.body.review,
+                rating: req.body.rating
+            });
+            await review.save();
+            res.status(200).json({ message: 'Review created!' });
+        } catch (err) {
+            res.status(400).json({ success: false, message: err.message });
+        }
+    });
 
 app.use('/', router);
 app.listen(process.env.PORT || 8080);
