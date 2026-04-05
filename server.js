@@ -28,7 +28,7 @@ function trackDimension(category, action, label, value, dimension, metric) {
         body: JSON.stringify({
             client_id: crypto.randomBytes(16).toString('hex'),
             events: [{
-                name: action.replace(/\s+/g, '_'),
+                name: action.replace(/[\s/]+/g, '_'),
                 params: {
                     event_category: category,
                     event_label: label,
