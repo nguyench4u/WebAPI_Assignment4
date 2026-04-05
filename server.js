@@ -92,6 +92,19 @@ router.post('/signin', function (req, res) {
 router.route('/movies') // GET, POST, PUT, DELETE APIs for movies with authentication ------------------
     .get(authJwtController.isAuthenticated, async (req, res) => {
         try {
+            if (req.query.reviews === 'true') {
+                const movies = await Movie.aggregate([
+                    {
+                        $lookup: {
+                            from: 'reviews',
+                            localField: '_id',
+                            foreignField: 'movieId',
+                            as: 'reviews'
+                        }
+                    }
+                ]);
+                return res.status(200).json(movies);
+            }
             const movies = await Movie.find();
             res.status(200).json(movies);
         } catch (err) {
@@ -117,6 +130,21 @@ router.route('/movies') // GET, POST, PUT, DELETE APIs for movies with authentic
 router.route('/movies/:title')
     .get(authJwtController.isAuthenticated, async (req, res) => {
         try {
+            if (req.query.reviews === 'true') {
+                const movies = await Movie.aggregate([
+                    { $match: { title: req.params.title } },
+                    {
+                        $lookup: {
+                            from: 'reviews',
+                            localField: '_id',
+                            foreignField: 'movieId',
+                            as: 'reviews'
+                        }
+                    }
+                ]);
+                if (!movies.length) return res.status(404).json({ success: false, message: 'Movie not found.' });
+                return res.status(200).json(movies[0]);
+            }
             const movie = await Movie.findOne({ title: req.params.title });
             if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
             res.status(200).json(movie);
