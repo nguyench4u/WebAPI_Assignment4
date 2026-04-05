@@ -1,0 +1,308 @@
+{
+  "info": {
+    "_postman_id": "35bf2826-555f-4bdc-8ee2-af25e7a9cb9a",
+    "name": "WebAPI_A4_NguyenChau",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "50001195",
+    "_collection_link": "https://go.postman.co/collection/50001195-35bf2826-555f-4bdc-8ee2-af25e7a9cb9a?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Sign up (A3)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));\r",
+              "pm.test('Success is true', () => {\r",
+              "  const body = pm.response.json();\r",
+              "  pm.expect(body.success).to.be.true;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"Test User\",\r\n    \"username\": \"Test7\",\r\n    \"password\": \"password123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://webapi-assignment4.onrender.com/signup",
+          "protocol": "https",
+          "host": [
+            "webapi-assignment4",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "signup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sign up (A3)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status is 200\", () => {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response contains token\", () => {\r",
+              "    const json = pm.response.json();\r",
+              "    pm.expect(json).to.be.an(\"object\");\r",
+              "    pm.expect(json.token, \"token\").to.be.a(\"string\").and.not.be.empty;\r",
+              "\r",
+              "    // Save exactly what API returns (looks like \"JWT <...>\")\r",
+              "    pm.environment.set(\"token\", json.token);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"Test7\",\r\n    \"password\": \"password123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://webapi-assignment4.onrender.com/signin",
+          "protocol": "https",
+          "host": [
+            "webapi-assignment4",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "signin"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Invalid Request (Movie not in DB)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));\r",
+              "pm.test('Success is False', () => {\r",
+              "  const body = pm.response.json();\r",
+              "  pm.expect(body.success).to.be.false;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://webapi-assignment4.onrender.com/movies/NonExistingMovie",
+          "protocol": "https",
+          "host": [
+            "webapi-assignment4",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "movies",
+            "NonExistingMovie"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Valid Request ?reviews:true",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));\r",
+              "pm.test('GET params present in response', () => {\r",
+              "  pm.response.json();\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://webapi-assignment4.onrender.com/movies/Minions?reviews=true",
+          "protocol": "https",
+          "host": [
+            "webapi-assignment4",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "movies",
+            "Minions"
+          ],
+          "query": [
+            {
+              "key": "reviews",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Valid request with the review query parameter (e.g `reviews=true` on the `/movies/:id` route)"
+      },
+      "response": []
+    },
+    {
+      "name": "Valid Review Saved to Movie",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));\r",
+              "pm.test('Review saved to the movie', () => {\r",
+              "  const body = pm.response.json();\r",
+              "  pm.expect(body.message).to.equal(\"Review created!\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"movieId\": \"69b10a88f3b4baebb1fe0317\",\r\n    \"review\": \"Great movie!\",\r\n    \"rating\": 4\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://webapi-assignment4.onrender.com/reviews",
+          "protocol": "https",
+          "host": [
+            "webapi-assignment4",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "reviews"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Invalid Review Saved to Movie (Movie not in DB)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));\r",
+              "pm.test('Success is False', () => {\r",
+              "  const body = pm.response.json();\r",
+              "  pm.expect(body.success).to.be.false;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"movieId\": \"01010101010101010101\",\r\n    \"review\": \"Great movie!\",\r\n    \"rating\": 4\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://webapi-assignment4.onrender.com/reviews",
+          "protocol": "https",
+          "host": [
+            "webapi-assignment4",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "reviews"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
