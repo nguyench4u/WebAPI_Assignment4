@@ -14,6 +14,31 @@ var cors = require('cors');
 var User = require('./Users');
 var Movie = require('./Movies');
 var Review = require('./Reviews');
+const crypto = require('crypto');
+var rp = require('request-promise');
+
+const GA_TRACKING_ID = process.env.GA_KEY;
+
+function trackDimension(category, action, label, value, dimension, metric) {
+    var options = {
+        method: 'GET',
+        url: 'https://www.google-analytics.com/collect',
+        qs: {
+            v: '1',
+            tid: GA_TRACKING_ID,
+            cid: crypto.randomBytes(16).toString('hex'),
+            t: 'event',
+            ec: category,
+            ea: action,
+            el: label,
+            ev: value,
+            cd1: dimension,
+            cm1: metric
+        },
+        headers: { 'Cache-Control': 'no-cache' }
+    };
+    return rp(options);
+}
 
 var app = express();
 app.use(cors());
@@ -190,6 +215,9 @@ router.route('/reviews')
     })
     .post(authJwtController.isAuthenticated, async (req, res) => {
         try {
+            const movie = await Movie.findById(req.body.movieId);
+            if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+
             const review = new Review({
                 movieId: req.body.movieId,
                 username: req.user.username,
@@ -197,6 +225,17 @@ router.route('/reviews')
                 rating: req.body.rating
             });
             await review.save();
+
+            // Fire analytics event (non-blocking)
+            trackDimension(
+                movie.genre,         // Event Category: genre of movie
+                'post /reviews',     // Event Action: URL path
+                'API Request for Movie Review', // Event Label
+                '1',                 // Event Value
+                movie.title,         // Custom Dimension: movie name
+                '1'                  // Custom Metric: requested value
+            ).catch(err => console.log('GA tracking error:', err.message));
+
             res.status(200).json({ message: 'Review created!' });
         } catch (err) {
             res.status(400).json({ success: false, message: err.message });
