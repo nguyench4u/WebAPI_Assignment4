@@ -18,24 +18,28 @@ const crypto = require('crypto');
 var rp = require('request-promise');
 
 const GA_TRACKING_ID = process.env.GA_KEY;
+const GA_SECRET = process.env.GA_SECRET;
 
+// GA4 Measurement Protocol requires POST (unlike old UA which used GET)
 function trackDimension(category, action, label, value, dimension, metric) {
     var options = {
-        method: 'GET',
-        url: 'https://www.google-analytics.com/collect',
-        qs: {
-            v: '1',
-            tid: GA_TRACKING_ID,
-            cid: crypto.randomBytes(16).toString('hex'),
-            t: 'event',
-            ec: category,
-            ea: action,
-            el: label,
-            ev: value,
-            cd1: dimension,
-            cm1: metric
-        },
-        headers: { 'Cache-Control': 'no-cache' }
+        method: 'POST',
+        url: `https://www.google-analytics.com/mp/collect?measurement_id=${GA_TRACKING_ID}&api_secret=${GA_SECRET}`,
+        body: JSON.stringify({
+            client_id: crypto.randomBytes(16).toString('hex'),
+            events: [{
+                name: action.replace(/\s+/g, '_'),
+                params: {
+                    event_category: category,
+                    event_label: label,
+                    value: value,
+                    movie_name: dimension,
+                    requested: metric,
+                    engagement_time_msec: '100'
+                }
+            }]
+        }),
+        headers: { 'Content-Type': 'application/json' }
     };
     return rp(options);
 }
