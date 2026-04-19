@@ -4,6 +4,7 @@ File: Server.js
 Description: Web API scaffolding for Movie API
  */
 
+var mongoose = require('mongoose');
 var express = require('express');
 var bodyParser = require('body-parser');
 var passport = require('passport');
@@ -130,6 +131,12 @@ router.route('/movies') // GET, POST, PUT, DELETE APIs for movies with authentic
                             foreignField: 'movieId',
                             as: 'reviews'
                         }
+                    },
+                    {
+                        $addFields: { avgRating: { $avg: '$reviews.rating' } }
+                    },
+                    {
+                        $sort: { avgRating: -1 }
                     }
                 ]);
                 return res.status(200).json(movies);
@@ -156,12 +163,17 @@ router.route('/movies') // GET, POST, PUT, DELETE APIs for movies with authentic
         res.status(405).json({ success: false, message: 'DELETE not supported on /movies. Use /movies/:title.' });
     });
 
-router.route('/movies/:title')
+router.route('/movies/:movieId')
     .get(authJwtController.isAuthenticated, async (req, res) => {
         try {
+            const isObjectId = /^[a-fA-F0-9]{24}$/.test(req.params.movieId);
+            const matchStage = isObjectId
+                ? { $match: { _id: new mongoose.Types.ObjectId(req.params.movieId) } }
+                : { $match: { title: req.params.movieId } };
+
             if (req.query.reviews === 'true') {
                 const movies = await Movie.aggregate([
-                    { $match: { title: req.params.title } },
+                    matchStage,
                     {
                         $lookup: {
                             from: 'reviews',
@@ -169,12 +181,17 @@ router.route('/movies/:title')
                             foreignField: 'movieId',
                             as: 'reviews'
                         }
+                    },
+                    {
+                        $addFields: { avgRating: { $avg: '$reviews.rating' } }
                     }
                 ]);
                 if (!movies.length) return res.status(404).json({ success: false, message: 'Movie not found.' });
                 return res.status(200).json(movies[0]);
             }
-            const movie = await Movie.findOne({ title: req.params.title });
+            const movie = isObjectId
+                ? await Movie.findById(req.params.movieId)
+                : await Movie.findOne({ title: req.params.movieId });
             if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
             res.status(200).json(movie);
         } catch (err) {
@@ -187,7 +204,7 @@ router.route('/movies/:title')
     .put(authJwtController.isAuthenticated, async (req, res) => {
         try {
             const movie = await Movie.findOneAndUpdate(
-                { title: req.params.title },
+                { title: req.params.movieId },
                 req.body,
                 { new: true, runValidators: true }
             );
@@ -199,7 +216,7 @@ router.route('/movies/:title')
     })
     .delete(authJwtController.isAuthenticated, async (req, res) => {
         try {
-            const movie = await Movie.findOneAndDelete({ title: req.params.title });
+            const movie = await Movie.findOneAndDelete({ title: req.params.movieId });
             if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
             res.status(200).json({ success: true, message: 'Movie deleted.' });
         } catch (err) {
