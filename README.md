@@ -1,45 +1,38 @@
-# CSC3916 Assignment 4 - Movie Review API - Chau Nguyen
+# Assignment Five
+## Purpose
 
-## POSTMAN LINK
-[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/50001195-35bf2826-555f-4bdc-8ee2-af25e7a9cb9a?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D50001195-35bf2826-555f-4bdc-8ee2-af25e7a9cb9a%26entityType%3Dcollection%26workspaceId%3D297285e3-6344-447b-8dac-a1673f7a3c78#?env%5BNguyenChau-HW3%5D=W3sia2V5IjoidG9rZW4iLCJ2YWx1ZSI6IiIsImVuYWJsZWQiOnRydWUsInR5cGUiOiJhbnkiLCJzZXNzaW9uVmFsdWUiOiJKV1QuLi4iLCJjb21wbGV0ZVNlc3Npb25WYWx1ZSI6IkpXVCBleUpoYkdjaU9pSklVekkxTmlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcFpDSTZJalk1WkRJeE9HWTFNVE15WmpRd01EQXpNak0wWXpCbU5DSXNJblZ6WlhKdVlXMWxJam9pVkdWemREY2lMQ0pwWVhRaU9qRTNOelV6TnpZMk5qWjkuYnZFblJ6dUNqRnlibkZtQ2JmTzFNUW02azNPc0tkSzdVLUdOMklpcWctayIsInNlc3Npb25JbmRleCI6MH1d)
+The purpose of this assignment is to create a React Single Page App over your developed API.  The interface will allow the users to search for movies, display information about the movie, see stored ratings, and allow the user to enter a rating.
 
-In case the embedded link above does not work, I have attached the JSON files in the /postman folder.
+## Pre-Requirements
+- Assignment 3 deployed REACT app that supports SignUp and Logon
+- Assignment 4 that supports reviews
 
-## Overview
-A REST API for managing movies and reviews, built with Node.js, Express, and MongoDB. Extends Assignment 3 by adding a Reviews collection and aggregation support.
+## Requirements
+- Update your API to support storing an image (or image URL) for the movies you have stored.  You will use the image URL in your React application to show the image of movies
+    - New Attribute on the movie collection
+- For this assignment all your endpoints should be protected by JWT authentication
+- Implement the following interfaces
+    - User SignUp and User Logon
+        - Leverage your User mongoDB collection to store new users of the application
+    - Main screen should show the top rated movies (show at least 5)
+        - Your GET /movies endpoint should sort by rating (server side)
+            - Update your /movies (with reviews=true) endpoint to sort by average rating descending
+    - Movie Detail screen, shows the Movie, Image, Actors that were in the movie, aggregated rating for the movie and grid that shows the reviews (username, rating, review)
+    - Extra Credit: (7 points) - chapter 25 of (https://www.amazon.com/dp/B0979MGJ5J?_encoding=UTF8&psc=1&ref_=cm_sw_r_cp_ud_dp_M9YGPJNZWB3BK0P59QX3) Movie Search – show results in a grid, accordion or other list control
+        - Add Search API (HTTP POST) to the API that can take partial movie names or partial actor names
 
-## Expanded from Assignment 3
-- **Reviews collection** — users can post reviews tied to existing movies (movieId, username, review, rating)
-- **Aggregation** — `GET /movies` and `GET /movies/:title` support `?reviews=true` query parameter, which uses MongoDB `$lookup` to return movie data with all associated reviews appended
-- **Analytics** — Google Analytics event tracking on `POST /reviews` (extra credit)
+## Submissions
+- User is able to Sign-up (name, username, password)
+- User is able to Logon to the application (username, password)
+- User is able to see list of movies and select a movie to see the detail screen (top rated movies displayed)
+- User is able to enter a review on the detail page (enter a rating and comment) – the logged in user’s username will be associated with the review (as captured from the JSON Web Token)
 
-## API Endpoints
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| POST | `/signup` | No | Register a new user |
-| POST | `/signin` | No | Sign in, returns JWT token |
-| POST | `/movies` | JWT | Add a new movie |
-| GET | `/movies` | JWT | Get all movies (add `?reviews=true` to include reviews) |
-| GET | `/movies/:title` | JWT | Get a movie by title (add `?reviews=true` to include reviews) |
-| POST | `/reviews` | JWT | Post a review for a movie |
+## Rubic
+- -3 Not able to add comments
+- -2 Not aggregating rating (average rating)
+- -3 if not pointed to correct end point (e.g Hw4 endpoint)
+- -5 if you don’t have a react web site deployed 
 
-## Installation
-```bash
-npm install
-```
-
-## Environment Setup
-Create a `.env` file in the root directory:
-```
-DB=<your MongoDB connection string>
-SECRET_KEY=<your JWT secret>
-GA_KEY=<your Google Analytics key>
-```
-
-## Running the App
-```bash
-node server.js
-```
-
-## Deployed URL
-https://webapi-assignment4.onrender.com
+## Resources
+- https://github.com/facebook/create-react-app
+- https://github.com/mars/create-react-app-buildpack#user-content-requires

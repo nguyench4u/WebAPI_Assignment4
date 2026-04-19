@@ -21,6 +21,7 @@ var MovieSchema = new Schema({
         required: true,
         validate: [arr => arr.length >= 3, 'Must have at least 3 actors'],
     },
+    imageUrl: String,
 });
 
 // return the model
