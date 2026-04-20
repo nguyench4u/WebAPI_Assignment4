@@ -106,6 +106,10 @@ router.post('/signin', function (req, res) {
             res.send(err);
         }
 
+        if (!user) {
+            return res.status(401).send({success: false, msg: 'Authentication failed. User not found.'});
+        }
+
         user.comparePassword(userNew.password, function(isMatch) {
             if (isMatch) {
                 var userToken = { id: user.id, username: user.username };
