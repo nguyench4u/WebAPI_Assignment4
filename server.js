@@ -163,6 +163,24 @@ router.route('/movies') // GET, POST, PUT, DELETE APIs for movies with authentic
         res.status(405).json({ success: false, message: 'DELETE not supported on /movies. Use /movies/:title.' });
     });
 
+router.route('/movies/search')
+    .post(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const { search } = req.body;
+            if (!search) return res.status(400).json({ success: false, message: 'Search term is required.' });
+            const regex = new RegExp(search, 'i');
+            const movies = await Movie.find({
+                $or: [
+                    { title: regex },
+                    { 'actors.actorName': regex }
+                ]
+            });
+            res.status(200).json(movies);
+        } catch (err) {
+            res.status(500).json({ success: false, message: 'Something went wrong.' });
+        }
+    });
+
 router.route('/movies/:movieId')
     .get(authJwtController.isAuthenticated, async (req, res) => {
         try {
